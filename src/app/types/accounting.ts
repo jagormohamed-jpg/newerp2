@@ -470,6 +470,7 @@ export type SourceType =
   | 'fiscal_close'
   | 'inventory_adjustment'
   | 'cogs'
+  | 'check'
   | 'manual';
 
 export interface JournalEntry {

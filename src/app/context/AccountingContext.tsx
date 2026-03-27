@@ -9,10 +9,6 @@ import type {
   Invoice, InvoiceItem, ShippingCompany, InvoiceSettings, InvoiceDocStatus, InvoicePaymentEntry
 } from '../types/accounting';
 import { defaultAccounts, defaultExpenseCategories, defaultItemCategories } from '../data/defaultAccounts';
-import {
-  manufacturingWarehouses, manufacturingRawMaterials, manufacturingFinishedGoods,
-  manufacturingInitialStock, manufacturingAccounts, manufacturingItemCategories,
-} from '../data/manufacturingIntegrationData';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
@@ -39,49 +35,17 @@ const defaultInvoiceSettings: InvoiceSettings = {
 };
 
 const initialState: AccountingState = {
-  accounts: [...defaultAccounts, ...manufacturingAccounts],
-  contacts: [
-    { id: 'c1', contact_type: 'customer', name: 'شركة النور للتجارة', phone: '01001234567', phone2: '', email: 'info@alnour.com', address: 'القاهرة - مدينة نصر', tax_number: '123456789', credit_limit: 50000, account_id: 'ca1', opening_balance: 15000, notes: '', is_active: true, group_id: '', price_list_id: '', created_at: new Date().toISOString() },
-    { id: 'c2', contact_type: 'customer', name: 'محلات الأمل', phone: '01112345678', phone2: '', email: '', address: 'الجيزة - الهرم', tax_number: '', credit_limit: 30000, account_id: 'ca2', opening_balance: 8000, notes: '', is_active: true, group_id: '', price_list_id: '', created_at: new Date().toISOString() },
-    { id: 'c3', contact_type: 'supplier', name: 'مصنع السلام للإلكترونيات', phone: '01223456789', phone2: '', email: 'info@alsalam.com', address: 'العاشر من رمضان', tax_number: '987654321', credit_limit: 100000, account_id: 'sa1', opening_balance: 20000, notes: '', is_active: true, group_id: '', price_list_id: '', created_at: new Date().toISOString() },
-    { id: 'c4', contact_type: 'supplier', name: 'شركة التوحيد للاستيراد', phone: '01098765432', phone2: '', email: '', address: 'الإسكندرية', tax_number: '', credit_limit: 75000, account_id: 'sa2', opening_balance: 12000, notes: '', is_active: true, group_id: '', price_list_id: '', created_at: new Date().toISOString() },
-  ],
+  accounts: [],
+  contacts: [],
   contactGroups: [],
   priceLists: [],
-  warehouses: [
-    { id: 'w1', name: 'المخزن الرئيسي', location: 'القاهرة', manager_name: 'أحمد محمد', is_active: true, created_at: new Date().toISOString() },
-    { id: 'w2', name: 'مخزن الفرع', location: 'الجيزة', manager_name: 'محمد علي', is_active: true, created_at: new Date().toISOString() },
-    ...manufacturingWarehouses,
-  ],
-  itemCategories: [...defaultItemCategories, ...manufacturingItemCategories.filter(c => !defaultItemCategories.find(d => d.id === c.id))],
-  items: [
-    { id: 'i1', item_code: '001', item_name: 'لاب توب Dell', category_id: 'ic1', unit: 'قطعة', purchase_price: 8000, selling_price: 10000, minimum_stock: 5, barcode: '1234567890', description: '', is_active: true, created_at: new Date().toISOString() },
-    { id: 'i2', item_code: '002', item_name: 'شاشة Samsung 24"', category_id: 'ic1', unit: 'قطعة', purchase_price: 2000, selling_price: 2800, minimum_stock: 10, barcode: '2345678901', description: '', is_active: true, created_at: new Date().toISOString() },
-    { id: 'i3', item_code: '003', item_name: 'كيبورد لاسلكي', category_id: 'ic1', unit: 'قطعة', purchase_price: 200, selling_price: 350, minimum_stock: 20, barcode: '3456789012', description: '', is_active: true, created_at: new Date().toISOString() },
-    { id: 'i4', item_code: '004', item_name: 'ماوس لاسلكي', category_id: 'ic1', unit: 'قطعة', purchase_price: 100, selling_price: 180, minimum_stock: 30, barcode: '4567890123', description: '', is_active: true, created_at: new Date().toISOString() },
-    { id: 'i5', item_code: '005', item_name: 'طابعة HP LaserJet', category_id: 'ic1', unit: 'قطعة', purchase_price: 3000, selling_price: 4000, minimum_stock: 3, barcode: '5678901234', description: '', is_active: true, created_at: new Date().toISOString() },
-    ...manufacturingRawMaterials,
-    ...manufacturingFinishedGoods,
-  ],
-  itemStock: [
-    { id: 'is1', item_id: 'i1', warehouse_id: 'w1', quantity: 15, average_cost: 8000, last_updated: new Date().toISOString() },
-    { id: 'is2', item_id: 'i2', warehouse_id: 'w1', quantity: 30, average_cost: 2000, last_updated: new Date().toISOString() },
-    { id: 'is3', item_id: 'i3', warehouse_id: 'w1', quantity: 50, average_cost: 200, last_updated: new Date().toISOString() },
-    { id: 'is4', item_id: 'i4', warehouse_id: 'w1', quantity: 3, average_cost: 100, last_updated: new Date().toISOString() },
-    { id: 'is5', item_id: 'i5', warehouse_id: 'w1', quantity: 8, average_cost: 3000, last_updated: new Date().toISOString() },
-    { id: 'is6', item_id: 'i1', warehouse_id: 'w2', quantity: 5, average_cost: 8000, last_updated: new Date().toISOString() },
-    { id: 'is7', item_id: 'i2', warehouse_id: 'w2', quantity: 10, average_cost: 2000, last_updated: new Date().toISOString() },
-    ...manufacturingInitialStock,
-  ],
-  treasuries: [
-    { id: 't1', name: 'الصندوق الرئيسي', account_id: 'a3', current_balance: 50000, opening_balance: 50000, is_active: true, created_at: new Date().toISOString() },
-    { id: 't2', name: 'صندوق الفرع', account_id: 'a4', current_balance: 10000, opening_balance: 10000, is_active: true, created_at: new Date().toISOString() },
-  ],
+  warehouses: [],
+  itemCategories: [],
+  items: [],
+  itemStock: [],
+  treasuries: [],
   treasuryTransactions: [],
-  banks: [
-    { id: 'b1', bank_name: 'البنك الأهلي', account_number: '1234567890', branch: 'فرع مدينة نصر', account_id: 'a5', current_balance: 100000, opening_balance: 100000, is_active: true, created_at: new Date().toISOString() },
-    { id: 'b2', bank_name: 'بنك مصر', account_number: '0987654321', branch: 'فرع الدقي', account_id: 'a6', current_balance: 75000, opening_balance: 75000, is_active: true, created_at: new Date().toISOString() },
-  ],
+  banks: [],
   bankTransactions: [],
   salesInvoices: [],
   salesInvoiceItems: [],
@@ -89,42 +53,19 @@ const initialState: AccountingState = {
   purchaseInvoiceItems: [],
   receipts: [],
   payments: [],
-  expenseCategories: defaultExpenseCategories,
+  expenseCategories: [],
   expenses: [],
   checks: [],
   journalEntries: [],
   journalEntryLines: [],
-  unitsOfMeasure: [
-    { id: 'u1', name: 'قطعة', symbol: 'قطعة', base_unit_id: null, conversion_rate: 1, is_active: true, created_at: new Date().toISOString() },
-    { id: 'u2', name: 'كرتونة', symbol: 'كرتونة', base_unit_id: 'u1', conversion_rate: 12, is_active: true, created_at: new Date().toISOString() },
-    { id: 'u3', name: 'كيلوجرام', symbol: 'كج', base_unit_id: null, conversion_rate: 1, is_active: true, created_at: new Date().toISOString() },
-    { id: 'u4', name: 'جرام', symbol: 'ج', base_unit_id: 'u3', conversion_rate: 0.001, is_active: true, created_at: new Date().toISOString() },
-    { id: 'u5', name: 'متر', symbol: 'م', base_unit_id: null, conversion_rate: 1, is_active: true, created_at: new Date().toISOString() },
-    { id: 'u6', name: 'سنتيمتر', symbol: 'سم', base_unit_id: 'u5', conversion_rate: 0.01, is_active: true, created_at: new Date().toISOString() },
-    { id: 'u7', name: 'لتر', symbol: 'ل', base_unit_id: null, conversion_rate: 1, is_active: true, created_at: new Date().toISOString() },
-    { id: 'u8', name: 'طن', symbol: 'طن', base_unit_id: 'u3', conversion_rate: 1000, is_active: true, created_at: new Date().toISOString() },
-  ],
+  unitsOfMeasure: [],
   itemVariants: [],
   warehouseTransfers: [],
   invoices: [],
   invoiceItems: [],
-  shippingCompanies: [
-    { id: 'sc1', name: 'بريد مصر', phone: '19133', address: 'القاهرة', account_id: '', commission_rate: 0, notes: '', is_active: true, created_at: new Date().toISOString() },
-    { id: 'sc2', name: 'DHL Express', phone: '16345', address: 'القاهرة', account_id: '', commission_rate: 0, notes: '', is_active: true, created_at: new Date().toISOString() },
-    { id: 'sc3', name: 'Aramex', phone: '19099', address: 'القاهرة', account_id: '', commission_rate: 0, notes: '', is_active: true, created_at: new Date().toISOString() },
-    { id: 'sc4', name: 'J&T Express', phone: '19006', address: 'القاهرة', account_id: '', commission_rate: 0, notes: '', is_active: true, created_at: new Date().toISOString() },
-  ],
+  shippingCompanies: [],
   invoiceSettings: defaultInvoiceSettings,
 };
-
-// Add sub-accounts for contacts
-const contactSubAccounts: Account[] = [
-  { id: 'ca1', account_code: '1105-001', account_name: 'شركة النور للتجارة', account_type: 'assets', parent_id: 'a7', level: 4, is_parent: false, is_active: true, opening_balance: 15000, balance_type: 'debit', created_at: new Date().toISOString() },
-  { id: 'ca2', account_code: '1105-002', account_name: 'محلات الأمل', account_type: 'assets', parent_id: 'a7', level: 4, is_parent: false, is_active: true, opening_balance: 8000, balance_type: 'debit', created_at: new Date().toISOString() },
-  { id: 'sa1', account_code: '2101-001', account_name: 'مصنع السلام للإلكترونيات', account_type: 'liabilities', parent_id: 'l3', level: 4, is_parent: false, is_active: true, opening_balance: 20000, balance_type: 'credit', created_at: new Date().toISOString() },
-  { id: 'sa2', account_code: '2101-002', account_name: 'شركة التوحيد للاستيراد', account_type: 'liabilities', parent_id: 'l3', level: 4, is_parent: false, is_active: true, opening_balance: 12000, balance_type: 'credit', created_at: new Date().toISOString() },
-];
-initialState.accounts = [...initialState.accounts, ...contactSubAccounts];
 
 // ============ Actions ============
 type Action =
@@ -256,11 +197,6 @@ function accountingReducer(state: AccountingState, action: Action): AccountingSt
     case 'LOAD_STATE': {
       // Ensure backward compatibility for new fields
       const loaded = action.payload;
-      // Merge manufacturing data (backward compatibility for existing sessions)
-      const loadedAccounts = loaded.accounts || [];
-      const loadedWarehouses = loaded.warehouses || [];
-      const loadedItems = loaded.items || [];
-      const loadedStock = loaded.itemStock || [];
       return {
         ...loaded,
         contactGroups: loaded.contactGroups || [],
@@ -271,34 +207,18 @@ function accountingReducer(state: AccountingState, action: Action): AccountingSt
           group_id: c.group_id || '',
           price_list_id: c.price_list_id || '',
         })),
-        // Manufacturing integration - add if not already present
-        accounts: [
-          ...loadedAccounts,
-          ...manufacturingAccounts.filter(a => !loadedAccounts.find(la => la.id === a.id)),
-        ],
-        warehouses: [
-          ...loadedWarehouses,
-          ...manufacturingWarehouses.filter(w => !loadedWarehouses.find(lw => lw.id === w.id)),
-        ],
-        items: [
-          ...loadedItems,
-          ...[...manufacturingRawMaterials, ...manufacturingFinishedGoods].filter(i => !loadedItems.find(li => li.id === i.id)),
-        ],
-        itemStock: [
-          ...loadedStock,
-          ...manufacturingInitialStock.filter(s => !loadedStock.find(ls => ls.id === s.id)),
-        ],
-        itemCategories: [
-          ...(loaded.itemCategories || []),
-          ...manufacturingItemCategories.filter(c => !(loaded.itemCategories || []).find(lc => lc.id === c.id)),
-        ],
+        accounts: loaded.accounts || [],
+        warehouses: loaded.warehouses || [],
+        items: loaded.items || [],
+        itemStock: loaded.itemStock || [],
+        itemCategories: loaded.itemCategories || [],
         // New fields - backward compatibility
-        unitsOfMeasure: loaded.unitsOfMeasure || initialState.unitsOfMeasure,
+        unitsOfMeasure: loaded.unitsOfMeasure || [],
         itemVariants: loaded.itemVariants || [],
         warehouseTransfers: loaded.warehouseTransfers || [],
         invoices: loaded.invoices || [],
         invoiceItems: loaded.invoiceItems || [],
-        shippingCompanies: loaded.shippingCompanies || initialState.shippingCompanies,
+        shippingCompanies: loaded.shippingCompanies || [],
         invoiceSettings: loaded.invoiceSettings || initialState.invoiceSettings,
       };
     }
@@ -492,6 +412,22 @@ function accountingReducer(state: AccountingState, action: Action): AccountingSt
           }];
         }
       }
+      // ★ Update bank balance (Bug #6 fix)
+      if (invoice.paid_amount > 0 && invoice.bank_id && !invoice.treasury_id) {
+        const bIdx = newState.banks.findIndex(b => b.id === invoice.bank_id);
+        if (bIdx >= 0) {
+          const updatedBanks = [...newState.banks];
+          updatedBanks[bIdx] = { ...updatedBanks[bIdx], current_balance: updatedBanks[bIdx].current_balance + invoice.paid_amount };
+          newState.banks = updatedBanks;
+          newState.bankTransactions = [...newState.bankTransactions, {
+            id: uid(), bank_id: invoice.bank_id, transaction_date: invoice.invoice_date,
+            transaction_type: 'deposit', amount: invoice.paid_amount,
+            balance_after: updatedBanks[bIdx].current_balance,
+            check_number: '', source_type: 'sales_invoice', source_id: invoice.id,
+            description: `فاتورة بيع ${invoice.invoice_number}`, created_at: new Date().toISOString(),
+          }];
+        }
+      }
 
       return newState;
     }
@@ -574,6 +510,22 @@ function accountingReducer(state: AccountingState, action: Action): AccountingSt
             transaction_type: 'withdrawal', amount: invoice.paid_amount,
             balance_after: updatedTreasuries[tIdx].current_balance,
             source_type: 'purchase_invoice', source_id: invoice.id,
+            description: `فاتورة شراء ${invoice.invoice_number}`, created_at: new Date().toISOString(),
+          }];
+        }
+      }
+      // ★ Update bank balance (Bug #6 fix)
+      if (invoice.paid_amount > 0 && invoice.bank_id && !invoice.treasury_id) {
+        const bIdx = newState.banks.findIndex(b => b.id === invoice.bank_id);
+        if (bIdx >= 0) {
+          const updatedBanks = [...newState.banks];
+          updatedBanks[bIdx] = { ...updatedBanks[bIdx], current_balance: updatedBanks[bIdx].current_balance - invoice.paid_amount };
+          newState.banks = updatedBanks;
+          newState.bankTransactions = [...newState.bankTransactions, {
+            id: uid(), bank_id: invoice.bank_id, transaction_date: invoice.invoice_date,
+            transaction_type: 'withdrawal', amount: invoice.paid_amount,
+            balance_after: updatedBanks[bIdx].current_balance,
+            check_number: '', source_type: 'purchase_invoice', source_id: invoice.id,
             description: `فاتورة شراء ${invoice.invoice_number}`, created_at: new Date().toISOString(),
           }];
         }
@@ -848,11 +800,103 @@ function accountingReducer(state: AccountingState, action: Action): AccountingSt
     case 'UPDATE_CHECK_STATUS': {
       const { check } = action.payload;
       let newState = { ...state };
+      const oldCheck = state.checks.find(c => c.id === check.id);
       newState.checks = newState.checks.map(c => c.id === check.id ? check : c);
       // Add if not exists
       if (!newState.checks.find(c => c.id === check.id)) {
         newState.checks = [...newState.checks, check];
       }
+
+      // ★ Generate JE for status transitions
+      if (oldCheck && oldCheck.status !== check.status) {
+        const contact = state.contacts.find(c => c.id === check.contact_id);
+        const jeLines: { account_id: string; debit: number; credit: number; description: string; contact_id?: string }[] = [];
+
+        if (check.status === 'collected' && (oldCheck.status === 'pending' || oldCheck.status === 'under_collection')) {
+          // Check collected — money enters the bank
+          if (check.check_type === 'received') {
+            // Received check: DR Bank, CR Contact (customer paid)
+            const bank = state.banks.find(b => b.id === check.bank_id);
+            if (bank) {
+              jeLines.push({ account_id: bank.account_id, debit: check.amount, credit: 0, description: `تحصيل شيك ${check.check_number}` });
+              const bIdx = newState.banks.findIndex(b => b.id === check.bank_id);
+              const ub = [...newState.banks];
+              ub[bIdx] = { ...ub[bIdx], current_balance: ub[bIdx].current_balance + check.amount };
+              newState.banks = ub;
+              newState.bankTransactions = [...newState.bankTransactions, {
+                id: uid(), bank_id: check.bank_id!, transaction_date: check.check_date || today(),
+                transaction_type: 'deposit', amount: check.amount,
+                balance_after: ub[bIdx].current_balance,
+                check_number: check.check_number, source_type: 'check', source_id: check.id,
+                description: `تحصيل شيك ${check.check_number}`, created_at: new Date().toISOString(),
+              }];
+            }
+            if (contact) {
+              jeLines.push({ account_id: contact.account_id, debit: 0, credit: check.amount, description: `تحصيل شيك ${check.check_number}`, contact_id: contact.id });
+            }
+          } else {
+            // Issued check: DR Contact (vendor paid), CR Bank
+            if (contact) {
+              jeLines.push({ account_id: contact.account_id, debit: check.amount, credit: 0, description: `صرف شيك ${check.check_number}`, contact_id: contact.id });
+            }
+            const bank = state.banks.find(b => b.id === check.bank_id);
+            if (bank) {
+              jeLines.push({ account_id: bank.account_id, debit: 0, credit: check.amount, description: `صرف شيك ${check.check_number}` });
+              const bIdx = newState.banks.findIndex(b => b.id === check.bank_id);
+              const ub = [...newState.banks];
+              ub[bIdx] = { ...ub[bIdx], current_balance: ub[bIdx].current_balance - check.amount };
+              newState.banks = ub;
+              newState.bankTransactions = [...newState.bankTransactions, {
+                id: uid(), bank_id: check.bank_id!, transaction_date: check.check_date || today(),
+                transaction_type: 'withdrawal', amount: check.amount,
+                balance_after: ub[bIdx].current_balance,
+                check_number: check.check_number, source_type: 'check', source_id: check.id,
+                description: `صرف شيك ${check.check_number}`, created_at: new Date().toISOString(),
+              }];
+            }
+          }
+        } else if (check.status === 'bounced' && (oldCheck.status === 'pending' || oldCheck.status === 'under_collection' || oldCheck.status === 'collected')) {
+          // Check bounced — reverse the original entry
+          if (check.check_type === 'received') {
+            // Received check bounced: DR Contact (reinstate receivable), CR Bank
+            if (contact) {
+              jeLines.push({ account_id: contact.account_id, debit: check.amount, credit: 0, description: `شيك مرتد ${check.check_number}`, contact_id: contact.id });
+            }
+            if (oldCheck.status === 'collected') {
+              const bank = state.banks.find(b => b.id === check.bank_id);
+              if (bank) {
+                jeLines.push({ account_id: bank.account_id, debit: 0, credit: check.amount, description: `شيك مرتد ${check.check_number}` });
+                const bIdx = newState.banks.findIndex(b => b.id === check.bank_id);
+                const ub = [...newState.banks];
+                ub[bIdx] = { ...ub[bIdx], current_balance: ub[bIdx].current_balance - check.amount };
+                newState.banks = ub;
+              }
+            }
+          } else {
+            // Issued check bounced: DR Bank (get money back), CR Contact
+            if (oldCheck.status === 'collected') {
+              const bank = state.banks.find(b => b.id === check.bank_id);
+              if (bank) {
+                jeLines.push({ account_id: bank.account_id, debit: check.amount, credit: 0, description: `شيك مرتد ${check.check_number}` });
+                const bIdx = newState.banks.findIndex(b => b.id === check.bank_id);
+                const ub = [...newState.banks];
+                ub[bIdx] = { ...ub[bIdx], current_balance: ub[bIdx].current_balance + check.amount };
+                newState.banks = ub;
+              }
+            }
+            if (contact) {
+              jeLines.push({ account_id: contact.account_id, debit: 0, credit: check.amount, description: `شيك مرتد ${check.check_number}`, contact_id: contact.id });
+            }
+          }
+        }
+
+        if (jeLines.length > 0) {
+          const { entry, entryLines } = createJournalEntry(newState, 'check', check.id, check.check_date || today(), `شيك ${check.check_number} - ${check.status}`, jeLines);
+          newState.journalEntries = [...newState.journalEntries, entry];
+          newState.journalEntryLines = [...newState.journalEntryLines, ...entryLines];
+        }
+      }
+
       return newState;
     }
 
@@ -953,6 +997,37 @@ function accountingReducer(state: AccountingState, action: Action): AccountingSt
         }
       });
       newState.itemStock = updatedStock;
+
+      // ★ JE for cross-account warehouse transfers (Bug #2 fix)
+      // Only generate JE if items move between different inventory account categories
+      const crossAccountLines: { account_id: string; debit: number; credit: number; description: string }[] = [];
+      transfer.items.forEach(ti => {
+        const fullItem = state.items.find(i => i.id === ti.item_id);
+        // Source warehouse uses item's default inventory account
+        // Destination may use a different one based on item type and target warehouse
+        const sourceAcc = getInventoryAccountForItem(fullItem);
+        // If source and dest warehouses map to different accounts, record transfer
+        // For now, we compare based on warehouse type (manufacturing vs. main)
+        const destIsManufacturing = transfer.to_warehouse_id === 'w-mfg' || transfer.to_warehouse_id === 'w-fg';
+        const sourceIsManufacturing = transfer.from_warehouse_id === 'w-mfg' || transfer.from_warehouse_id === 'w-fg';
+        let destAcc = sourceAcc;
+        if (destIsManufacturing && !sourceIsManufacturing) {
+          destAcc = fullItem?.item_type === 'raw_material' ? 'mfg-raw' : 'mfg-fg';
+        } else if (!destIsManufacturing && sourceIsManufacturing) {
+          destAcc = 'a8';
+        }
+        if (sourceAcc !== destAcc) {
+          const transferValue = ti.quantity * ti.unit_cost;
+          crossAccountLines.push({ account_id: destAcc, debit: transferValue, credit: 0, description: `تحويل مخزون وارد - ${transfer.transfer_number}` });
+          crossAccountLines.push({ account_id: sourceAcc, debit: 0, credit: transferValue, description: `تحويل مخزون صادر - ${transfer.transfer_number}` });
+        }
+      });
+      if (crossAccountLines.length > 0) {
+        const { entry, entryLines } = createJournalEntry(newState, 'transfer', transfer.id, transfer.transfer_date, `تحويل مخزون ${transfer.transfer_number}`, crossAccountLines);
+        newState.journalEntries = [...newState.journalEntries, entry];
+        newState.journalEntryLines = [...newState.journalEntryLines, ...entryLines];
+      }
+
       return newState;
     }
 
@@ -1122,6 +1197,23 @@ function accountingReducer(state: AccountingState, action: Action): AccountingSt
           }];
         }
       }
+      // ★ Update bank balance (Bug #3 fix)
+      if (invoice.paid_amount > 0 && invoice.bank_id && !invoice.treasury_id) {
+        const bIdx = newState.banks.findIndex(b => b.id === invoice.bank_id);
+        if (bIdx >= 0) {
+          const updBanks = [...newState.banks];
+          const newBankBal = updBanks[bIdx].current_balance + (isSalesType ? invoice.paid_amount : -invoice.paid_amount);
+          updBanks[bIdx] = { ...updBanks[bIdx], current_balance: newBankBal };
+          newState.banks = updBanks;
+          newState.bankTransactions = [...newState.bankTransactions, {
+            id: uid(), bank_id: invoice.bank_id, transaction_date: invoice.invoice_date,
+            transaction_type: txnDir as 'deposit' | 'withdrawal', amount: invoice.paid_amount,
+            balance_after: newBankBal,
+            check_number: '', source_type: isSalesType ? 'sales_invoice' : 'purchase_invoice', source_id: invoice.id,
+            description: `فاتورة ${invoice.invoice_number}`, created_at: new Date().toISOString(),
+          }];
+        }
+      }
 
       return newState;
     }
@@ -1268,6 +1360,22 @@ function accountingReducer(state: AccountingState, action: Action): AccountingSt
             transaction_type: 'withdrawal', amount: invoice.paid_amount,
             balance_after: ut[tIdx].current_balance,
             source_type: 'sales_return', source_id: invoiceId,
+            description: `عكس فاتورة بيع ${invoice.invoice_number}`, created_at: new Date().toISOString(),
+          }];
+        }
+      }
+      // ★ Reverse bank balance (Bug #4 fix)
+      if (invoice.paid_amount > 0 && invoice.bank_id && !invoice.treasury_id) {
+        const bIdx = newState.banks.findIndex(b => b.id === invoice.bank_id);
+        if (bIdx >= 0) {
+          const ub = [...newState.banks];
+          ub[bIdx] = { ...ub[bIdx], current_balance: ub[bIdx].current_balance - invoice.paid_amount };
+          newState.banks = ub;
+          newState.bankTransactions = [...newState.bankTransactions, {
+            id: uid(), bank_id: invoice.bank_id, transaction_date: today(),
+            transaction_type: 'withdrawal', amount: invoice.paid_amount,
+            balance_after: ub[bIdx].current_balance,
+            check_number: '', source_type: 'sales_return', source_id: invoiceId,
             description: `عكس فاتورة بيع ${invoice.invoice_number}`, created_at: new Date().toISOString(),
           }];
         }
@@ -1599,21 +1707,113 @@ function accountingReducer(state: AccountingState, action: Action): AccountingSt
 // ============ Supabase Persistence (org-scoped) ============
 async function loadStateFromSupabase(orgId: string): Promise<AccountingState | null> {
   try {
-    const { data, error } = await supabase
+    // First try to load from actual database tables (primary source)
+    const [
+      { data: accounts },
+      { data: contacts },
+      { data: contactGroups },
+      { data: warehouses },
+      { data: itemCategories },
+      { data: items },
+      { data: itemStock },
+      { data: treasuries },
+      { data: treasuryTransactions },
+      { data: banks },
+      { data: bankTransactions },
+      { data: invoices },
+      { data: invoiceItems },
+      { data: receipts },
+      { data: payments },
+      { data: expenseCategories },
+      { data: expenses },
+      { data: checks },
+      { data: journalEntries },
+      { data: journalEntryLines },
+      { data: unitsOfMeasure },
+      { data: shippingCompanies },
+      { data: fiscalPeriods },
+      { data: invoiceSettings },
+      { data: invoicePayments },
+    ] = await Promise.all([
+      supabase.from('accounts').select('*').eq('org_id', orgId).order('account_code'),
+      supabase.from('contacts').select('*').eq('org_id', orgId),
+      supabase.from('contact_groups').select('*').eq('org_id', orgId),
+      supabase.from('warehouses').select('*').eq('org_id', orgId),
+      supabase.from('item_categories').select('*').eq('org_id', orgId),
+      supabase.from('items').select('*').eq('org_id', orgId),
+      supabase.from('item_stock').select('*').eq('org_id', orgId),
+      supabase.from('treasuries').select('*').eq('org_id', orgId),
+      supabase.from('treasury_transactions').select('*').eq('org_id', orgId).order('created_at'),
+      supabase.from('banks').select('*').eq('org_id', orgId),
+      supabase.from('bank_transactions').select('*').eq('org_id', orgId).order('created_at'),
+      supabase.from('invoices').select('*').eq('org_id', orgId).order('created_at'),
+      supabase.from('invoice_items').select('*').eq('org_id', orgId),
+      supabase.from('receipts').select('*').eq('org_id', orgId).order('created_at'),
+      supabase.from('payments').select('*').eq('org_id', orgId).order('created_at'),
+      supabase.from('expense_categories').select('*').eq('org_id', orgId),
+      supabase.from('expenses').select('*').eq('org_id', orgId).order('created_at'),
+      supabase.from('checks').select('*').eq('org_id', orgId),
+      supabase.from('journal_entries').select('*').eq('org_id', orgId).order('created_at'),
+      supabase.from('journal_entry_lines').select('*').eq('org_id', orgId),
+      supabase.from('units_of_measure').select('*').eq('org_id', orgId),
+      supabase.from('shipping_companies').select('*').eq('org_id', orgId),
+      supabase.from('fiscal_periods').select('*').eq('org_id', orgId),
+      supabase.from('invoice_settings').select('*').eq('org_id', orgId).maybeSingle(),
+      supabase.from('invoice_payments').select('*').eq('org_id', orgId),
+    ]);
+
+    // If we have accounts data, this org has been set up via the DB
+    const hasDbData = (accounts && accounts.length > 0);
+    
+    if (hasDbData) {
+      return {
+        accounts: accounts || [],
+        contacts: contacts || [],
+        contactGroups: contactGroups || [],
+        priceLists: [],
+        warehouses: warehouses || [],
+        itemCategories: itemCategories || [],
+        items: items || [],
+        itemStock: itemStock || [],
+        treasuries: treasuries || [],
+        treasuryTransactions: treasuryTransactions || [],
+        banks: banks || [],
+        bankTransactions: bankTransactions || [],
+        salesInvoices: [],
+        salesInvoiceItems: [],
+        purchaseInvoices: [],
+        purchaseInvoiceItems: [],
+        receipts: receipts || [],
+        payments: payments || [],
+        expenseCategories: expenseCategories || [],
+        expenses: expenses || [],
+        checks: checks || [],
+        journalEntries: journalEntries || [],
+        journalEntryLines: journalEntryLines || [],
+        unitsOfMeasure: unitsOfMeasure || [],
+        itemVariants: [],
+        warehouseTransfers: [],
+        invoices: invoices || [],
+        invoiceItems: invoiceItems || [],
+        shippingCompanies: shippingCompanies || [],
+        invoiceSettings: invoiceSettings || initialState.invoiceSettings,
+      };
+    }
+
+    // Fallback: try org_state JSON blob for backward compatibility
+    const { data: orgStateData } = await supabase
       .from('org_state')
       .select('state_json')
       .eq('org_id', orgId)
       .maybeSingle();
-    if (error) {
-      console.log(`Failed to load state from Supabase: ${error.message}`);
-      return null;
+    
+    if (orgStateData?.state_json) {
+      return orgStateData.state_json as unknown as AccountingState;
     }
-    if (data?.state_json) {
-      return data.state_json as unknown as AccountingState;
-    }
+
     return null;
   } catch (error) {
-    console.log(`Error loading state from Supabase: ${error}`);
+    console.error('Error loading state from Supabase:', error);
     return null;
   }
 }
@@ -1623,7 +1823,7 @@ async function saveStateToSupabase(orgId: string, state: AccountingState): Promi
     const { error } = await supabase
       .from('org_state')
       .upsert(
-        { org_id: orgId, state_json: state as any, schema_ver: 1 },
+        { org_id: orgId, state_json: state as any, schema_ver: 2 },
         { onConflict: 'org_id' }
       );
     if (error) {
@@ -1689,24 +1889,12 @@ export function AccountingProvider({ children }: { children: ReactNode }) {
         const savedState = await loadStateFromSupabase(orgId!);
         if (!cancelled) {
           if (savedState) {
-            const requiredKeys: (keyof AccountingState)[] = [
-              'accounts', 'contacts', 'warehouses', 'itemCategories', 'items', 'itemStock',
-              'treasuries', 'treasuryTransactions', 'banks', 'bankTransactions',
-              'salesInvoices', 'salesInvoiceItems', 'purchaseInvoices', 'purchaseInvoiceItems',
-              'receipts', 'payments', 'expenseCategories', 'expenses',
-              'journalEntries', 'journalEntryLines',
-            ];
-            const isValid = requiredKeys.every(key => key in savedState);
-            if (isValid) {
-              dispatch({ type: 'LOAD_STATE', payload: savedState });
-              console.log('Loaded accounting state from Supabase successfully');
-            } else {
-              console.log('Saved state invalid, using defaults');
-              await saveStateToSupabase(orgId!, initialState);
-            }
+            dispatch({ type: 'LOAD_STATE', payload: savedState });
+            console.log('Loaded accounting state from Supabase successfully');
           } else {
-            console.log('No saved state found, saving defaults to Supabase');
-            await saveStateToSupabase(orgId!, initialState);
+            console.log('No saved state found, using empty defaults');
+            // Don't save initialState - new orgs should start empty
+            // Data comes from setup_new_organization DB function
           }
           isInitialLoadDone.current = true;
           setIsLoading(false);
